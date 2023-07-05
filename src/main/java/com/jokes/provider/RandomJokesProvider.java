@@ -19,11 +19,11 @@ import java.util.stream.IntStream;
 @Service
 public class RandomJokesProvider implements JokesProvider {
 
-    @Value("${random.jokes.uri.base}")
+    @Value("${jokes.uri.base}")
     private String baseUrl;
-    @Value("${random.jokes.uri.random}")
+    @Value("${jokes.uri.random}")
     private String singleJokeUrl;
-    @Value("${random.jokes.uri.ten}")
+    @Value("${jokes.uri.ten}")
     private String tenJokesUrl;
 
     private final HttpClient webClient;
@@ -68,7 +68,6 @@ public class RandomJokesProvider implements JokesProvider {
     }
 
     private List<Joke> provideTenJokes() {
-        System.out.println("Running in thread: " + Thread.currentThread());
         var request = HttpRequest.newBuilder(URI.create(baseUrl + tenJokesUrl)).GET().build();
         try {
             var response = webClient.send(request, HttpResponse.BodyHandlers.ofString());

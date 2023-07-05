@@ -6,24 +6,25 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@WebMvcTest(JokesController.class)
+@AutoConfigureMockMvc
 class JokesControllerTest {
 
-    @Value("${random.jokes.uri.random}")
+    @Value("${jokes.uri.random}")
     private String singleJokeUri;
 
     @Autowired
@@ -36,7 +37,7 @@ class JokesControllerTest {
 
     @DynamicPropertySource
     static void setUp(DynamicPropertyRegistry registry) {
-        registry.add("random.jokes.uri.base", () -> "http://localhost:" + wireMockExtension.getPort());
+        registry.add("jokes.uri.base", () -> "http://localhost:" + wireMockExtension.getPort());
     }
 
     @Test
@@ -47,7 +48,8 @@ class JokesControllerTest {
 
         mvc.perform(get("/jokes?count=1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$setup").value("How do locomotives know where they're going?"))
-                .andExpect(jsonPath("punchline").value("Lots of training"));
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].setup", is("How do locomotives know where they're going?")))
+                .andExpect(jsonPath("$[0].punchline", is("Lots of training")));
     }
 }
